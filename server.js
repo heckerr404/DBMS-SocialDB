@@ -10,7 +10,6 @@
 const http   = require('http');
 const mysql2 = require('mysql2/promise');
 
-// ── MySQL connection pool ──────────────────────────────────────────────────────
 const pool = mysql2.createPool({
   host    : 'localhost',
   port    : 3306,
@@ -21,7 +20,6 @@ const pool = mysql2.createPool({
   connectionLimit   : 10
 });
 
-// ── Helper: run a query and return rows ───────────────────────────────────────
 async function query(sql) {
   const [rows] = await pool.execute(sql);
   return rows;
@@ -41,11 +39,45 @@ async function getFeed() {
   `);
 }
 
+async function getUsers() {
+  return query(`
+    SELECT U.Username, U.Full_Name, U.Bio,
+           COUNT(DISTINCT P.Post_ID)     AS Total_Posts,
+           COUNT(DISTINCT F.Follower_ID) AS Followers
+    FROM USER U
+    LEFT JOIN POST    P ON U.User_ID = P.User_ID
+    LEFT JOIN FOLLOWS F ON U.User_ID = F.Following_ID
+    GROUP BY U.User_ID
+  `);
+}
+
+async function getHashtags() {
+  return query(`
+    SELECT H.Tag_Name, COUNT(PH.Post_ID) AS Post_Count
+    FROM HASHTAG H
+    LEFT JOIN POST_HASHTAG PH ON H.Hashtag_ID = PH.Hashtag_ID
+    GROUP BY H.Hashtag_ID
+    ORDER BY Post_Count DESC
+  `);
+}
+
+async function getGroups() {
+  return query(`
+    SELECT G.Group_Name, G.Description,
+           COUNT(GM.User_ID) AS Members
+    FROM USER_GROUP G
+    LEFT JOIN GROUP_MEMBERSHIP GM ON G.Group_ID = GM.Group_ID
+    GROUP BY G.Group_ID
+  `);
+}
+
 const ROUTES = {
-  '/api/feed'    : getFeed
+  '/api/feed'    : getFeed,
+  '/api/users'   : getUsers,
+  '/api/hashtags': getHashtags,
+  '/api/groups'  : getGroups
 };
 
-// ── HTTP server ───────────────────────────────────────────────────────────────
 const PORT = 3001;
 
 const server = http.createServer(async (req, res) => {
