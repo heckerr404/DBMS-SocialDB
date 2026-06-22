@@ -21,17 +21,31 @@
 const http   = require('http');
 const mysql2 = require('mysql2/promise');
 
-// ── MySQL connection pool ──────────────────────────────────────────────────────
-const pool = mysql2.createPool({
-  host    : 'localhost',
-  port    : 3306,
-  user    : 'root',
-  password: 'secretpassword',
-  database: 'social_media_db',
+let poolConfig = {
+  host              : process.env.DB_HOST || 'localhost',
+  port              : Number(process.env.DB_PORT) || 3306,
+  user              : process.env.DB_USER || 'root',
+  password          : process.env.DB_PASSWORD || 'secretpassword',
+  database          : process.env.DB_DATABASE || 'social_media_db',
   dateStrings       : true,   // return DATE/DATETIME as "YYYY-MM-DD" strings, not JS Date objects
   waitForConnections: true,
   connectionLimit   : 10
-});
+};
+
+if (process.env.DATABASE_URL) {
+  try {
+    const parsed = new URL(process.env.DATABASE_URL);
+    poolConfig.host = parsed.hostname;
+    poolConfig.port = Number(parsed.port) || 3306;
+    poolConfig.user = parsed.username;
+    poolConfig.password = decodeURIComponent(parsed.password || '');
+    poolConfig.database = parsed.pathname.replace(/^\//, '');
+  } catch (e) {
+    console.error('Failed to parse DATABASE_URL, using default pool config:', e.message);
+  }
+}
+
+const pool = mysql2.createPool(poolConfig);
 
 // ── Helper: run a query and return rows ───────────────────────────────────────
 async function query(sql) {
