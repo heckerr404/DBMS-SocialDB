@@ -63,9 +63,36 @@
     <!-- TAB 5: STATS -->
     <section id="tab-stats" class="tab-section">
       <h2 class="section-title">Stats</h2>
+
+      <!-- Big stat boxes -->
       <div id="stat-boxes" class="stat-boxes-row"></div>
-      
+
+      <!-- ===== CHARTS ===== -->
+      <div class="charts-section">
+
+        <!-- Chart 1: Overview bar chart (Users / Posts / Comments / Messages) -->
+        <div class="chart-block chart-block--wide">
+          <h3 class="chart-title">📊 Database Overview</h3>
+          <canvas id="chart-overview" height="220"></canvas>
+        </div>
+
+        <!-- Chart 2: Top Active Users — horizontal bar (GROUP BY + HAVING) -->
+        <div class="chart-block">
+          <h3 class="chart-title">🏆 Top Users by Posts</h3>
+          <canvas id="chart-users" height="260"></canvas>
+        </div>
+
+        <!-- Chart 3: Top Hashtags bar chart -->
+        <div class="chart-block">
+          <h3 class="chart-title"># Top Hashtags</h3>
+          <canvas id="chart-hashtags" height="260"></canvas>
+        </div>
+
+      </div>
+
+      <!-- SQL result tables -->
       <div class="stats-tables">
+
         <div class="stats-table-block">
           <h3>Users with more than 1 post (GROUP BY + HAVING)</h3>
           <table id="tbl-active-users">
@@ -97,6 +124,7 @@
             <tbody id="tbody-view"></tbody>
           </table>
         </div>
+
       </div>
     </section>
 

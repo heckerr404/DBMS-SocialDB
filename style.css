@@ -3,6 +3,7 @@
    Simple, plain, student-level CSS. No animations. No libraries.
    ============================================================ */
 
+/* --- Reset & Base --- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -16,6 +17,9 @@ body {
   min-height: 100vh;
 }
 
+/* ============================================================
+   NAVBAR
+   ============================================================ */
 .navbar {
   background-color: #1e2a45;
   display: flex;
@@ -37,6 +41,7 @@ body {
   gap: 4px;
 }
 
+/* Default tab button */
 .tab-btn {
   background: transparent;
   border: none;
@@ -52,18 +57,23 @@ body {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Active tab — white background, navy text */
 .tab-btn.active {
   background-color: #ffffff;
   color: #1e2a45;
   font-weight: bold;
 }
 
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
 .main-content {
   padding: 24px 28px;
   max-width: 1100px;
   margin: 0 auto;
 }
 
+/* Tab sections — hidden by default */
 .tab-section {
   display: none;
 }
@@ -80,12 +90,16 @@ body {
   padding-bottom: 6px;
 }
 
+/* ============================================================
+   CARDS GRID  (used by Feed and Groups)
+   ============================================================ */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
+/* Individual card */
 .card {
   background: #ffffff;
   border: 1px solid #d0d0d0;
@@ -94,6 +108,7 @@ body {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* Feed card specifics */
 .card .card-username {
   font-weight: bold;
   font-size: 15px;
@@ -121,6 +136,7 @@ body {
   text-transform: capitalize;
 }
 
+/* Likes / Comments bar at bottom of feed card */
 .card .card-footer {
   display: flex;
   gap: 18px;
@@ -130,6 +146,7 @@ body {
   color: #555;
 }
 
+/* Group card specifics */
 .card .group-name {
   font-weight: bold;
   font-size: 15px;
@@ -149,6 +166,9 @@ body {
   color: #555;
 }
 
+/* ============================================================
+   TABLE  (used by Users tab and Stats sub-tables)
+   ============================================================ */
 .table-wrapper {
   overflow-x: auto;
 }
@@ -182,6 +202,9 @@ tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
 
+/* ============================================================
+   HASHTAGS
+   ============================================================ */
 .hashtags-area {
   display: flex;
   flex-wrap: wrap;
@@ -189,6 +212,7 @@ tbody tr:nth-child(even) {
   padding-top: 4px;
 }
 
+/* Blue badge / chip */
 .hashtag-badge {
   background-color: #2563eb;
   color: #ffffff;
@@ -207,6 +231,11 @@ tbody tr:nth-child(even) {
   font-size: 12px;
 }
 
+/* ============================================================
+   STATS TAB — stat boxes
+   ============================================================ */
+
+/* Row of big stat boxes */
 .stat-boxes-row {
   display: flex;
   flex-wrap: wrap;
@@ -214,6 +243,7 @@ tbody tr:nth-child(even) {
   margin-bottom: 26px;
 }
 
+/* Individual stat box */
 .stat-box {
   background: #ffffff;
   border: 1px solid #d0d0d0;
@@ -226,6 +256,7 @@ tbody tr:nth-child(even) {
   max-width: 200px;
 }
 
+/* Big number — numeric stats */
 .stat-box .stat-number {
   font-size: 32px;
   font-weight: bold;
@@ -234,6 +265,7 @@ tbody tr:nth-child(even) {
   word-break: break-word;
 }
 
+/* Date values get smaller font so the timestamp doesn't overflow */
 .stat-box.stat-box--date .stat-number {
   font-size: 15px;
   font-weight: bold;
@@ -246,6 +278,48 @@ tbody tr:nth-child(even) {
   margin-top: 5px;
 }
 
+/* ============================================================
+   CHARTS SECTION
+   ============================================================ */
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+/* Wide chart spans both columns */
+.chart-block--wide {
+  grid-column: 1 / -1;
+}
+
+/* Individual chart card */
+.chart-block {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1e2a45;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
+}
+
+/* Canvas fills its container width */
+.chart-block canvas {
+  display: block;
+  width: 100% !important;
+}
+
+/* ============================================================
+   STATS SQL TABLES (below charts)
+   ============================================================ */
 .stats-tables {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -268,8 +342,18 @@ tbody tr:nth-child(even) {
   padding-bottom: 6px;
 }
 
+/* Responsive: stack on small screens */
 @media (max-width: 680px) {
-  .stats-tables {
+  .stats-tables,
+  .charts-section {
     grid-template-columns: 1fr;
+  }
+
+  .chart-block--wide {
+    grid-column: auto;
+  }
+
+  .stat-boxes-row {
+    justify-content: center;
   }
 }

@@ -42,7 +42,6 @@ function loadFeed() {
     });
 }
 
-// Simple render feed (without comments/likes if they're not in DB or without formatting)
 function renderFeed(data) {
   var container = document.getElementById('feed-container');
   container.innerHTML = '';
@@ -149,6 +148,9 @@ function loadStats() {
 
 function renderStats(d) {
   renderStatBoxes(d);
+  renderChartOverview(d);
+  renderChartUsers(d.activeUsers || []);
+  renderChartHashtags();
   renderTableActiveUsers(d.activeUsers || []);
   renderTableCommentedPosts(d.commentedPosts || []);
   renderTablePosters(d.posters || []);
@@ -171,6 +173,125 @@ function renderStatBoxes(d) {
     box.innerHTML = '<div class="stat-number">' + b.value + '</div><div class="stat-label">' + b.label + '</div>';
     container.appendChild(box);
   }
+}
+
+function drawBarChart(canvasId, labels, values, colors) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.width  = canvas.offsetWidth  || 600;
+  canvas.height = canvas.height       || 220;
+  var ctx    = canvas.getContext('2d');
+  var W      = canvas.width;
+  var H      = canvas.height;
+  var PAD_L  = 40;
+  var PAD_R  = 14;
+  var PAD_T  = 20;
+  var PAD_B  = 50;
+  var chartW = W - PAD_L - PAD_R;
+  var chartH = H - PAD_T - PAD_B;
+  ctx.clearRect(0, 0, W, H);
+  if (!values.length) return;
+  var maxVal = Math.max.apply(null, values) || 1;
+  var barCount = labels.length;
+  var gap      = 8;
+  var barW     = (chartW - gap * (barCount + 1)) / barCount;
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.fillStyle   = '#888';
+  ctx.font        = '11px Arial';
+  ctx.textAlign   = 'right';
+  for (var g = 0; g <= 4; g++) {
+    var yVal  = Math.round((maxVal / 4) * g);
+    var yPx   = PAD_T + chartH - (chartH * g / 4);
+    ctx.beginPath(); ctx.moveTo(PAD_L, yPx); ctx.lineTo(PAD_L + chartW, yPx); ctx.stroke();
+    ctx.fillText(yVal, PAD_L - 4, yPx + 4);
+  }
+  for (var i = 0; i < barCount; i++) {
+    var barH    = (values[i] / maxVal) * chartH;
+    var x       = PAD_L + gap + i * (barW + gap);
+    var y       = PAD_T + chartH - barH;
+    var color   = colors ? colors[i % colors.length] : '#2563eb';
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, barW, barH);
+    ctx.fillStyle   = '#333';
+    ctx.font        = '11px Arial';
+    ctx.textAlign   = 'center';
+    ctx.fillText(values[i], x + barW / 2, y - 4);
+    ctx.fillStyle   = '#555';
+    ctx.font        = '10px Arial';
+    var lbl = String(labels[i]);
+    if (lbl.length > 8) lbl = lbl.substring(0, 7) + '…';
+    ctx.fillText(lbl, x + barW / 2, PAD_T + chartH + 16);
+  }
+}
+
+function drawHBarChart(canvasId, labels, values, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.width  = canvas.offsetWidth || 460;
+  canvas.height = canvas.height      || 260;
+  var ctx   = canvas.getContext('2d');
+  var W     = canvas.width;
+  var H     = canvas.height;
+  var PAD_L = 90;
+  var PAD_R = 40;
+  var PAD_T = 16;
+  var PAD_B = 16;
+  var chartW = W - PAD_L - PAD_R;
+  var chartH = H - PAD_T - PAD_B;
+  ctx.clearRect(0, 0, W, H);
+  if (!values.length) return;
+  var maxVal  = Math.max.apply(null, values) || 1;
+  var count   = labels.length;
+  var barH    = Math.floor((chartH - (count + 1) * 6) / count);
+  if (barH < 8)  barH = 8;
+  if (barH > 32) barH = 32;
+  for (var i = 0; i < count; i++) {
+    var y   = PAD_T + i * (barH + 6);
+    var bW  = (values[i] / maxVal) * chartW;
+    ctx.fillStyle  = '#333';
+    ctx.textAlign  = 'right';
+    ctx.font      = '11px Arial';
+    var lbl = String(labels[i]);
+    if (lbl.length > 12) lbl = lbl.substring(0, 11) + '…';
+    ctx.fillText(lbl, PAD_L - 6, y + barH / 2 + 4);
+    ctx.fillStyle = color || '#2563eb';
+    ctx.fillRect(PAD_L, y, bW, barH);
+    ctx.fillStyle  = '#333';
+    ctx.textAlign  = 'left';
+    ctx.fillText(values[i], PAD_L + bW + 4, y + barH / 2 + 4);
+  }
+}
+
+function renderChartOverview(d) {
+  var labels = ['Users', 'Posts', 'Comments', 'Messages'];
+  var values = [Number(d.Total_Users||0), Number(d.Total_Posts||0), Number(d.Total_Comments||0), Number(d.Total_Messages||0)];
+  var colors = ['#1e2a45', '#2563eb', '#16a34a', '#dc2626'];
+  drawBarChart('chart-overview', labels, values, colors);
+}
+
+function renderChartUsers(activeUsers) {
+  var top  = activeUsers.slice(0, 8);
+  var labels = []; var values = [];
+  for (var i = 0; i < top.length; i++) {
+    labels.push(top[i].Username);
+    values.push(Number(top[i].Total_Posts || 0));
+  }
+  drawHBarChart('chart-users', labels, values, '#1e2a45');
+}
+
+function renderChartHashtags() {
+  fetch(API + '/api/hashtags')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      var top    = data.slice(0, 8);
+      var labels = []; var values = [];
+      for (var i = 0; i < top.length; i++) {
+        labels.push('#' + top[i].Tag_Name);
+        values.push(Number(top[i].Post_Count || 0));
+      }
+      var colors = ['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#854d0e','#1e2a45'];
+      drawBarChart('chart-hashtags', labels, values, colors);
+    });
 }
 
 function renderTableActiveUsers(au) {
