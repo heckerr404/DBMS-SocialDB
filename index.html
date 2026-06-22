@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Media DB Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="nav-brand">📱 SocialDB</div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('feed', this)">Feed</button>
+      <button class="tab-btn" onclick="showTab('users', this)">Users</button>
+      <button class="tab-btn" onclick="showTab('hashtags', this)">Hashtags</button>
+      <button class="tab-btn" onclick="showTab('groups', this)">Groups</button>
+      <button class="tab-btn" onclick="showTab('stats', this)">Stats</button>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- TAB 1: FEED -->
+    <section id="tab-feed" class="tab-section active">
+      <h2 class="section-title">Feed</h2>
+      <div id="feed-container" class="cards-grid"></div>
+    </section>
+
+    <!-- TAB 2: USERS -->
+    <section id="tab-users" class="tab-section">
+      <h2 class="section-title">Users</h2>
+      <div class="table-wrapper">
+        <table id="users-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Bio</th>
+              <th>Posts</th>
+              <th>Followers</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: HASHTAGS -->
+    <section id="tab-hashtags" class="tab-section">
+      <h2 class="section-title">Hashtags</h2>
+      <div id="hashtags-container" class="hashtags-area"></div>
+    </section>
+
+    <!-- TAB 4: GROUPS -->
+    <section id="tab-groups" class="tab-section">
+      <h2 class="section-title">Groups</h2>
+      <div id="groups-container" class="cards-grid"></div>
+    </section>
+
+    <!-- TAB 5: STATS -->
+    <section id="tab-stats" class="tab-section">
+      <h2 class="section-title">Stats</h2>
+      <div id="stat-boxes" class="stat-boxes-row"></div>
+      
+      <div class="stats-tables">
+        <div class="stats-table-block">
+          <h3>Users with more than 1 post (GROUP BY + HAVING)</h3>
+          <table id="tbl-active-users">
+            <thead><tr><th>Username</th><th>Total Posts</th></tr></thead>
+            <tbody id="tbody-active-users"></tbody>
+          </table>
+        </div>
+
+        <div class="stats-table-block">
+          <h3>Posts with more than 1 comment (Nested Query)</h3>
+          <table id="tbl-commented-posts">
+            <thead><tr><th>Content</th><th>Post Date</th></tr></thead>
+            <tbody id="tbody-commented-posts"></tbody>
+          </table>
+        </div>
+
+        <div class="stats-table-block">
+          <h3>Users who have created posts (Nested Query)</h3>
+          <table id="tbl-posters">
+            <thead><tr><th>Username</th></tr></thead>
+            <tbody id="tbody-posters"></tbody>
+          </table>
+        </div>
+
+        <div class="stats-table-block">
+          <h3>User_Posts View (first 10 rows)</h3>
+          <table id="tbl-view">
+            <thead><tr><th>Username</th><th>Content</th><th>Post Date</th><th>Likes</th></tr></thead>
+            <tbody id="tbody-view"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
