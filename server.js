@@ -71,11 +71,65 @@ async function getGroups() {
   `);
 }
 
+async function getStats() {
+  const [usersRow]    = await query('SELECT COUNT(*) AS v FROM USER');
+  const [postsRow]    = await query('SELECT COUNT(*) AS v FROM POST');
+  const [commRow]     = await query('SELECT COUNT(*) AS v FROM COMMENT');
+  const [msgRow]      = await query('SELECT COUNT(*) AS v FROM MESSAGE');
+  const [latestRow]   = await query('SELECT MAX(Post_Date) AS v FROM POST');
+  const [firstRow]    = await query('SELECT MIN(Date_Joined) AS v FROM USER');
+
+  const activeUsers   = await query(`
+    SELECT U.Username, COUNT(P.Post_ID) AS Total_Posts
+    FROM USER U
+    JOIN POST P ON U.User_ID = P.User_ID
+    GROUP BY U.User_ID
+    HAVING COUNT(P.Post_ID) > 1
+    ORDER BY Total_Posts DESC
+  `);
+
+  const commentedPosts = await query(`
+    SELECT P.Content, P.Post_Date
+    FROM POST P
+    WHERE P.Post_ID IN (
+      SELECT Post_ID FROM COMMENT
+      GROUP BY Post_ID
+      HAVING COUNT(*) > 1
+    )
+  `);
+
+  const posters = await query(`
+    SELECT Username FROM USER
+    WHERE User_ID IN (SELECT User_ID FROM POST)
+  `);
+
+  let viewRows = [];
+  try {
+    viewRows = await query('SELECT * FROM User_Posts LIMIT 10');
+  } catch (e) {
+    viewRows = [];
+  }
+
+  return {
+    Total_Users   : usersRow.v,
+    Total_Posts   : postsRow.v,
+    Total_Comments: commRow.v,
+    Total_Messages: msgRow.v,
+    Latest_Post   : latestRow.v ? latestRow.v.toString().split('T')[0] : '—',
+    First_User    : firstRow.v  ? firstRow.v.toString().split('T')[0]  : '—',
+    activeUsers,
+    commentedPosts,
+    posters,
+    viewRows
+  };
+}
+
 const ROUTES = {
   '/api/feed'    : getFeed,
   '/api/users'   : getUsers,
   '/api/hashtags': getHashtags,
-  '/api/groups'  : getGroups
+  '/api/groups'  : getGroups,
+  '/api/stats'   : getStats
 };
 
 const PORT = 3001;
