@@ -20,6 +20,8 @@
 
 const http   = require('http');
 const mysql2 = require('mysql2/promise');
+const fs     = require('fs').promises;
+const path   = require('path');
 
 let poolConfig = {
   host              : process.env.DB_HOST || 'localhost',
@@ -229,8 +231,47 @@ const PORT = 3001;
 
 const serverHandler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
 
+  // Serve static files
+  if (req.url === '/' || req.url === '/index.html') {
+    res.setHeader('Content-Type', 'text/html');
+    try {
+      const html = await fs.readFile(path.join(__dirname, 'index.html'));
+      res.writeHead(200);
+      res.end(html);
+    } catch (err) {
+      res.writeHead(500);
+      res.end('Error loading index.html');
+    }
+    return;
+  }
+  if (req.url === '/style.css') {
+    res.setHeader('Content-Type', 'text/css');
+    try {
+      const css = await fs.readFile(path.join(__dirname, 'style.css'));
+      res.writeHead(200);
+      res.end(css);
+    } catch (err) {
+      res.writeHead(500);
+      res.end('Error loading style.css');
+    }
+    return;
+  }
+  if (req.url === '/app.js') {
+    res.setHeader('Content-Type', 'application/javascript');
+    try {
+      const js = await fs.readFile(path.join(__dirname, 'app.js'));
+      res.writeHead(200);
+      res.end(js);
+    } catch (err) {
+      res.writeHead(500);
+      res.end('Error loading app.js');
+    }
+    return;
+  }
+
+  // API endpoints
+  res.setHeader('Content-Type', 'application/json');
   const handler = ROUTES[req.url];
 
   if (!handler) {
