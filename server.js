@@ -213,7 +213,7 @@ const ROUTES = {
 // ── HTTP server ───────────────────────────────────────────────────────────────
 const PORT = 3001;
 
-const server = http.createServer(async (req, res) => {
+const serverHandler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
@@ -234,8 +234,13 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(500);
     res.end(JSON.stringify({ error: err.message }));
   }
-});
+};
 
-server.listen(PORT, () => {
-  console.log('✅  Social Media DB server running → http://localhost:' + PORT);
-});
+module.exports = serverHandler;
+
+if (require.main === module) {
+  const server = http.createServer(serverHandler);
+  server.listen(PORT, () => {
+    console.log('✅  Social Media DB server running → http://localhost:' + PORT);
+  });
+}

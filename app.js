@@ -5,7 +5,9 @@
   Draws 3 charts using pure HTML5 Canvas — no external libraries.
 */
 
-var API = 'http://localhost:3001';
+var API = window.location.origin.includes('localhost') || window.location.protocol === 'file:'
+  ? 'http://localhost:3001'
+  : '';
 
 function showTab(tabName, clickedBtn) {
   var sections = document.querySelectorAll('.tab-section');
