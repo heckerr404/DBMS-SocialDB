@@ -1,3 +1,10 @@
+/*
+  app.js — Social Media DB Viewer
+  ============================================================
+  Fetches live data from server.js (which connects to Docker MySQL).
+  Draws 3 charts using pure HTML5 Canvas — no external libraries.
+*/
+
 var API = 'http://localhost:3001';
 
 function showTab(tabName, clickedBtn) {
@@ -15,7 +22,21 @@ function showTab(tabName, clickedBtn) {
 
 function formatDate(val) {
   if (val === null || val === undefined) return '—';
-  return String(val);
+  var d;
+  if (val instanceof Date) {
+    d = val;
+  } else {
+    var s = String(val);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2} /.test(s)) return s.split(' ')[0];
+    if (s.indexOf('T') > -1) return s.split('T')[0];
+    d = new Date(s);
+  }
+  if (isNaN(d.getTime())) return String(val);
+  var yr = d.getFullYear();
+  var mo = String(d.getMonth() + 1).padStart(2, '0');
+  var dy = String(d.getDate()).padStart(2, '0');
+  return yr + '-' + mo + '-' + dy;
 }
 
 function setMsg(id, msg) {
@@ -38,7 +59,7 @@ function loadFeed() {
     .then(function(res) { return res.json(); })
     .then(function(data) { renderFeed(data); })
     .catch(function() {
-      setMsg('feed-container', '❌ Could not connect to server.');
+      setMsg('feed-container', '❌ Could not connect to server. Is server.js running?');
     });
 }
 
@@ -54,6 +75,7 @@ function renderFeed(data) {
       '<div class="card-username">@' + escapeHtml(post.Username) + '</div>' +
       '<div class="card-content">' + escapeHtml(post.Content) + '</div>' +
       '<div class="card-date">📅 ' + formatDate(post.Post_Date) + '</div>' +
+      '<div class="card-visibility">🔒 ' + escapeHtml(post.Visibility) + '</div>' +
       '<div class="card-footer">' +
         '<span>❤️ ' + (post.Likes || 0) + ' Likes</span>' +
         '<span>💬 ' + (post.Comments || 0) + ' Comments</span>' +
@@ -102,6 +124,7 @@ function loadHashtags() {
 function renderHashtags(data) {
   var container = document.getElementById('hashtags-container');
   container.innerHTML = '';
+  if (!data.length) { setMsg('hashtags-container', 'No hashtags found.'); return; }
   for (var i = 0; i < data.length; i++) {
     var h = data[i];
     var badge = document.createElement('span');
@@ -124,6 +147,7 @@ function loadGroups() {
 function renderGroups(data) {
   var container = document.getElementById('groups-container');
   container.innerHTML = '';
+  if (!data.length) { setMsg('groups-container', 'No groups found.'); return; }
   for (var i = 0; i < data.length; i++) {
     var g = data[i];
     var card = document.createElement('div');
@@ -170,8 +194,19 @@ function renderStatBoxes(d) {
     var b = numBoxes[i];
     var box = document.createElement('div');
     box.className = 'stat-box';
-    box.innerHTML = '<div class="stat-number">' + b.value + '</div><div class="stat-label">' + b.label + '</div>';
+    box.innerHTML = '<div class="stat-number">' + (b.value !== undefined ? b.value : '—') + '</div><div class="stat-label">' + b.label + '</div>';
     container.appendChild(box);
+  }
+  var dateBoxes = [
+    { label: 'Latest Post',  value: formatDate(d.Latest_Post) },
+    { label: 'First Joined', value: formatDate(d.First_User)  }
+  ];
+  for (var j = 0; j < dateBoxes.length; j++) {
+    var db = dateBoxes[j];
+    var dbox = document.createElement('div');
+    dbox.className = 'stat-box stat-box--date';
+    dbox.innerHTML = '<div class="stat-number">' + db.value + '</div><div class="stat-label">' + db.label + '</div>';
+    container.appendChild(dbox);
   }
 }
 
@@ -308,8 +343,10 @@ function renderTableCommentedPosts(cp) {
   var tbody = document.getElementById('tbody-commented-posts');
   tbody.innerHTML = '';
   for (var k = 0; k < cp.length; k++) {
+    var content = escapeHtml(cp[k].Content || '');
+    var short   = content.length > 60 ? content.substring(0, 60) + '…' : content;
     var row = document.createElement('tr');
-    row.innerHTML = '<td>' + escapeHtml(cp[k].Content) + '</td><td>' + cp[k].Post_Date + '</td>';
+    row.innerHTML = '<td>' + short + '</td><td>' + formatDate(cp[k].Post_Date) + '</td>';
     tbody.appendChild(row);
   }
 }
@@ -327,10 +364,15 @@ function renderTablePosters(pr) {
 function renderTableView(vr) {
   var tbody = document.getElementById('tbody-view');
   tbody.innerHTML = '';
+  if (!vr.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#888;">View not found or empty.</td></tr>';
+    return;
+  }
   for (var n = 0; n < vr.length; n++) {
     var v = vr[n];
     var row = document.createElement('tr');
-    row.innerHTML = '<td>' + escapeHtml(v.Username) + '</td><td>' + escapeHtml(v.Content) + '</td><td>' + v.Post_Date + '</td><td>' + v.Likes + '</td>';
+    var cont = escapeHtml(String(v.Content || '').substring(0, 50));
+    row.innerHTML = '<td>' + escapeHtml(v.Username) + '</td><td>' + cont + '</td><td>' + formatDate(v.Post_Date) + '</td><td>' + (v.Likes || 0) + '</td>';
     tbody.appendChild(row);
   }
 }
